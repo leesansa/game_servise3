@@ -1,9 +1,12 @@
-import { bindings, defineConfig, defineWorker } from "cf/config";
+import { bindings, defineConfig, defineWorker, triggers } from "cf/config";
 
 export default defineConfig({
   worker: defineWorker({
     name: "mycar-note",
-    entrypoint: "vinext/server/fetch-handler",
+    // vinext 앱 + Cron 의 scheduled() 를 함께 내보내는 진입점
+    entrypoint: "./src/worker.ts",
+    // 매일 UTC 00:00 = 한국 09:00 (일일 알림 작업). GitHub Actions schedule 은 60일 비활동 시 꺼져서 쓰지 않음
+    triggers: [triggers.scheduled({ schedule: "0 0 * * *" })],
     compatibilityDate: "2026-11-27",
     compatibilityFlags: ["nodejs_compat"],
     assets: {
@@ -26,6 +29,8 @@ export default defineConfig({
       // (로컬에서 https 로 추측 → redirect_uri_mismatch). 로컬 .dev.vars: http://localhost:3000, 배포: https://mycar-note.fridgeo.workers.dev
       // 선언한 secret 은 배포 때 필수라 배포에도 값이 있어야 함. 사용자 도메인을 붙이면 이 값도 바꿀 것
       AUTH_URL: bindings.secret(),
+      // /api/internal/run-daily 호출용 토큰 (로컬 .dev.vars, 배포는 대시보드 Secret)
+      INTERNAL_JOB_TOKEN: bindings.secret(),
     },
   }),
 });

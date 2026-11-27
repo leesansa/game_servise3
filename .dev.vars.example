@@ -9,3 +9,5 @@ AUTH_GOOGLE_ID=
 AUTH_GOOGLE_SECRET=
 # Auth.js 기준 주소 (vinext 가 x-forwarded-proto 를 안 붙여 주소를 잘못 추측하는 것을 막음). 배포 값은 https://mycar-note.fridgeo.workers.dev
 AUTH_URL=http://localhost:3000
+# /api/internal/run-daily 호출용 토큰. 임의 값: node -e "console.log(require('crypto').randomBytes(24).toString('base64url'))"
+INTERNAL_JOB_TOKEN=

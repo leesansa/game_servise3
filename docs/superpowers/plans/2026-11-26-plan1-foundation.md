@@ -216,6 +216,8 @@ git commit -m "feat(auth): add Kakao and Google login with Auth.js"
 
 ### Task 5: 일일 작업 연결 (Cron + 보호된 HTTP 경로)
 
+> **코드 완료 (2026-11-27), 배포는 INTERNAL_JOB_TOKEN 등록 후** — vinext 기본 진입점은 fetch 만 내보내서 `src/worker.ts` 가 `vinext/server/fetch-handler` 의 fetch 를 그대로 쓰고 `scheduled()` 를 더함(`cloudflare.config.ts` entrypoint · `triggers.scheduled`). 로컬 확인: Local Explorer 로 Cron 실행 → `[runDaily]` 로그, `POST /api/internal/run-daily` 토큰 없음 · 틀림 401, 맞음 200. 경로: `src/server/jobs/daily.ts`, `src/server/internal/token.ts`.
+
 **Files:**
 - Create: `src/server/jobs/daily.ts`, `src/server/internal/token.ts`, `src/server/internal/token.test.ts`
 - Create: `src/app/api/internal/run-daily/route.ts`, `src/app/api/internal/run-daily/route.test.ts`
