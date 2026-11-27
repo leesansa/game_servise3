@@ -125,6 +125,8 @@ git add .github && git commit -m "ci: add CI and Cloudflare deploy workflows"
 
 ### Task 3: D1 + Drizzle, 전체 스키마
 
+> **완료 (2026-11-27)** — D1 `mycar-note-db`(apac) 생성, `cloudflare.config.ts` 에 `DB: bindings.d1({ id })`. 마이그레이션은 wrangler 대신 cf CLI: `npm run db:migrate:local` / `db:migrate:remote`(원격에도 0000_init 적용 완료). 스키마 테스트는 Node 내장 `node:sqlite` 에 같은 SQL 을 적용해 실행(추가 의존성 없음). drizzle-kit 0.31 이 식 인덱스(`coalesce`) 따옴표를 잘못 만들어 0000_init.sql 한 줄을 손으로 고침. `@auth/drizzle-adapter` 설치는 Task 4 로 미룸(테이블은 어댑터 모양으로 정의).
+
 **Files:**
 - Create: `src/server/db/schema.ts`, `src/server/db/client.ts`, `drizzle.config.ts`, `src/server/db/migrations/0000_*.sql`
 - Create: `src/server/db/schema.test.ts`

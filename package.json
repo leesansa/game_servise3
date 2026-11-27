@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@vinext/cloudflare": "^1.5.0",
+    "drizzle-orm": "^0.45.4",
     "next": "^16.4.6",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
@@ -18,6 +19,7 @@
     "@vitejs/plugin-react": "^6.3.0",
     "@vitejs/plugin-rsc": "^0.5.39",
     "cf": "^1.0.0-rc.6",
+    "drizzle-kit": "^0.31.11",
     "eslint": "^10.15.0",
     "eslint-config-next": "^16.4.6",
     "typescript": "^6.0.3",
@@ -34,6 +36,9 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit -p .",
     "test": "vitest run",
-    "cf-typegen": "cf workers types"
+    "cf-typegen": "cf workers types",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate:local": "cf d1 migrations apply 739d8b81-effa-4a37-b573-c29580f5142b --local --dir src/server/db/migrations",
+    "db:migrate:remote": "cf d1 migrations apply 739d8b81-effa-4a37-b573-c29580f5142b --dir src/server/db/migrations"
   }
 }
