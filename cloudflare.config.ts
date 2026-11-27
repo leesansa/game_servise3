@@ -31,6 +31,9 @@ export default defineConfig({
       AUTH_URL: bindings.secret(),
       // /api/internal/run-daily 호출용 토큰 (로컬 .dev.vars, 배포는 대시보드 Secret)
       INTERNAL_JOB_TOKEN: bindings.secret(),
+      // Web Push VAPID 키 (base64url). 공개키는 비밀이 아니지만 같은 방법으로 관리. 만들기: node scripts/vapid-keys.mjs
+      VAPID_PUBLIC_KEY: bindings.secret(),
+      VAPID_PRIVATE_KEY: bindings.secret(),
     },
   }),
 });

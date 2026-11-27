@@ -1,5 +1,7 @@
 // 로그인: 카카오 · 구글. 이미 로그인했으면 누구로 로그인했는지와 로그아웃 버튼을 보여 준다
+import { PushSubscribeButton } from '@/components/common/PushSubscribeButton'
 import { auth, signIn, signOut } from '@/server/auth/config'
+import { getVapid } from '@/server/push/vapid'
 
 export default async function LoginPage() {
   const session = await auth()
@@ -18,6 +20,8 @@ export default async function LoginPage() {
           }}
         >
           <p>{session.user.name ?? session.user.email} 님으로 로그인했어요</p>
+          {/* 0주차 확인용 임시 위치. 알림 설정 화면이 생기면 그리로 옮긴다 */}
+          <PushSubscribeButton vapidPublicKey={getVapid().publicKey} />
           <button className="login__btn" type="submit">
             로그아웃
           </button>

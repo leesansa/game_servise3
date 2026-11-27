@@ -11,3 +11,6 @@ AUTH_GOOGLE_SECRET=
 AUTH_URL=http://localhost:3000
 # /api/internal/run-daily 호출용 토큰. 임의 값: node -e "console.log(require('crypto').randomBytes(24).toString('base64url'))"
 INTERNAL_JOB_TOKEN=
+# Web Push VAPID 키 한 쌍: node scripts/vapid-keys.mjs 출력 두 줄을 그대로 붙여 넣음 (배포용은 따로 만들어 대시보드 Secret 으로)
+VAPID_PUBLIC_KEY=
+VAPID_PRIVATE_KEY=

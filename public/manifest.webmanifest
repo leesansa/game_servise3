@@ -1,0 +1,11 @@
+{
+  "name": "마이카노트",
+  "short_name": "마이카노트",
+  "description": "내 차 맞춤 정비 시기 알림",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#f5f7fa",
+  "theme_color": "#1f3a5f",
+  "lang": "ko",
+  "icons": [{ "src": "/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

@@ -1,22 +1,8 @@
 // 마이그레이션 SQL 을 Node 내장 SQLite 에 적용해 제약 조건(외래키 · 유니크 · 기본값)을 확인한다.
 // D1 도 SQLite 이고 외래키를 기본으로 검사하므로 여기서도 foreign_keys 를 켠다.
-import { readdirSync, readFileSync } from 'node:fs'
-import { join } from 'node:path'
-import { DatabaseSync } from 'node:sqlite'
+import type { DatabaseSync } from 'node:sqlite'
 import { beforeEach, describe, expect, it } from 'vitest'
-
-const MIGRATIONS = join(import.meta.dirname, 'migrations')
-
-function freshDb() {
-  const db = new DatabaseSync(':memory:')
-  db.exec('PRAGMA foreign_keys = ON')
-  for (const file of readdirSync(MIGRATIONS).filter((f) => f.endsWith('.sql')).sort()) {
-    for (const stmt of readFileSync(join(MIGRATIONS, file), 'utf8').split('--> statement-breakpoint')) {
-      if (stmt.trim()) db.exec(stmt)
-    }
-  }
-  return db
-}
+import { createRawTestDb as freshDb } from './test-db'
 
 const count = (db: DatabaseSync, table: string) => (db.prepare(`select count(*) as n from ${table}`).get() as { n: number }).n
 
