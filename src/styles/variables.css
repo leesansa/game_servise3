@@ -1,0 +1,23 @@
+/* 디자인 토큰: 색·글꼴·간격은 여기 값만 쓴다 */
+:root {
+  /* 기본 색 */
+  --c-bg: #f5f7fa;
+  --c-surface: #ffffff;
+  --c-text: #1b2430;
+  --c-sub: #5b6676;
+  --c-line: #dde2e8;
+  --c-primary: #1f3a5f;
+
+  /* 정비 상태 (설계 5.4): 색만으로 구분하지 않고 텍스트 배지를 함께 쓴다 */
+  --c-ok: #2e8b57;
+  --c-soon: #d97706;
+  --c-over: #c0392b;
+  --c-unknown: #8a94a3;
+
+  /* 글꼴 */
+  --f-kr: 'Pretendard', 'Malgun Gothic', system-ui, sans-serif;
+
+  /* 간격·모서리 */
+  --gap: 16px;
+  --radius: 12px;
+}

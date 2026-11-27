@@ -1,0 +1,36 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.sw?
+
+# next.js / vinext 생성물
+.next
+out
+next-env.d.ts
+*.tsbuildinfo
+.vinext/
+.cloudflare/
+
+# 환경 변수·비밀값 (값 없는 예시 파일만 올린다)
+.env*
+!.env.example
+.dev.vars*
+!.dev.vars.example
+
+# Cloudflare 로컬 캐시
+.wrangler
+
+# Office 잠금 파일
+~$*

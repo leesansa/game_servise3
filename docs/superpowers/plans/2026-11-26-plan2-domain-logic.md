@@ -1,20 +1,20 @@
-# 계획 2: 도메인 로직 (lib/domain) Implementation Plan
+# 계획 2: 도메인 로직 (src/lib/domain) Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 주행거리 추정, 정비 규칙 엔진, 보정 제안, 계절, 알림 후보 계산을 **DB·네트워크·현재 시각에 의존하지 않는 순수 함수**로 만들고, 설계 문서의 수치를 그대로 단위 테스트로 고정한다.
 
-**Architecture:** `lib/domain/` 아래 파일당 한 가지 책임. 모든 함수는 오늘 날짜(`IsoDate`, KST 기준 `YYYY-MM-DD`)를 인자로 받는다. 규칙·정비 항목·계절 데이터는 `seed/` 아래 TypeScript 상수로 두고, 계획 3에서 이 상수로 D1 시드를 만든다. 리뷰어가 가장 먼저 읽을 코드이므로 외부 라이브러리 없이 작성한다.
+**Architecture:** `src/lib/domain/` 아래 파일당 한 가지 책임. 모든 함수는 오늘 날짜(`IsoDate`, KST 기준 `YYYY-MM-DD`)를 인자로 받는다. 규칙·정비 항목·계절 데이터는 `seed/` 아래 TypeScript 상수로 두고, 계획 3에서 이 상수로 D1 시드를 만든다. 리뷰어가 가장 먼저 읽을 코드이므로 외부 라이브러리 없이 작성한다.
 
 **Tech Stack:** TypeScript strict · Vitest (Node 환경)
 
 **Spec:** `docs/superpowers/specs/2026-11-26-car-care-design.md` (기능 다·라·마·아·자·차, 6장 규칙, 7장 계산 로직, 9.4 dedupe_key, 10.2 일일 작업)
 
 ## 이 계획의 범위와 순서
-계획 1의 런타임 결정과 무관하므로 **계획 1과 병행 가능**하다. 계획 1 Task 1(Vitest 설치) 이후에 시작하거나, 먼저 시작한다면 `npm i -D vitest typescript` 후 `vitest.config.ts` 없이 `npx vitest run lib/domain`으로 돌린다. 화면, DB 저장, 알림 문구·발송은 계획 3·4에서 이 함수들을 호출한다.
+계획 1의 런타임 결정과 무관하므로 **계획 1과 병행 가능**하다. 계획 1 Task 1(Vitest 설치) 이후에 시작하거나, 먼저 시작한다면 `npm i -D vitest typescript` 후 `vitest.config.ts` 없이 `npx vitest run src/lib/domain`으로 돌린다. 화면, DB 저장, 알림 문구·발송은 계획 3·4에서 이 함수들을 호출한다.
 
 ## Global Constraints
-- `lib/domain/**`는 `Date.now()`, `new Date()`(인자 없이), `fetch`, DB, 환경 변수를 쓰지 않는다. 현재 시각은 `toKstDate(now)`로 바꿔 인자로 넘긴다.
+- `src/lib/domain/**`는 `Date.now()`, `new Date()`(인자 없이), `fetch`, DB, 환경 변수를 쓰지 않는다. 현재 시각은 `toKstDate(now)`로 바꿔 인자로 넘긴다.
 - 날짜 타입은 `IsoDate = string` (`YYYY-MM-DD`, KST). 시각 타입은 ISO 문자열(UTC).
 - 연료 타입 값: `"GASOLINE" | "DIESEL" | "LPG" | "HYBRID" | "EV"`.
 - 일 평균 유효 범위 1~500(정수). 월↔일 환산 계수 30.4.
@@ -23,7 +23,7 @@
 - 보정: 기준 실측 = 최신 실측으로부터 180일 이내 중 가장 오래된 것, 간격 14일 이상, 차이 20% 이상.
 - OVERDUE 재알림: 직전 OVERDUE 알림으로부터 14일 이상, 주기당 총 3회.
 - 계절: 봄 3~5월, 여름 6~8월, 가을 9~10월, 겨울 11~2월(시즌 키는 시작 연도, 예: 2027-01 → `2026-WINTER`).
-- 도메인 테스트 커버리지 90% 이상 (`vitest run --coverage lib/domain`).
+- 도메인 테스트 커버리지 90% 이상 (`vitest run --coverage src/lib/domain`).
 
 ## Review Focus
 - 실측·기록 배열이 날짜순이 아니거나 같은 날짜가 여러 개 → 최신은 "날짜가 가장 늦고, 같으면 km가 가장 큰 것"으로 항상 같게 골라야 한다. (Task 2, 3 테스트)
@@ -37,7 +37,7 @@
 ### Task 1: 공통 타입과 KST 날짜 유틸
 
 **Files:**
-- Create: `lib/domain/types.ts`, `lib/domain/dates.ts`, `lib/domain/__tests__/dates.test.ts`
+- Create: `src/lib/domain/types.ts`, `src/lib/domain/dates.ts`, `src/lib/domain/__tests__/dates.test.ts`
 
 **Interfaces:**
 - Produces (`types.ts`):
@@ -76,20 +76,20 @@ expect(addMonths("2028-02-29", 12)).toBe("2029-02-28");
 expect(daysBetween("2026-11-01", "2026-11-26")).toBe(25);
 expect(daysBetween("2026-12-01", "2026-11-26")).toBe(-5);
 ```
-Run: `npx vitest run lib/domain` → FAIL
+Run: `npx vitest run src/lib/domain` → FAIL
 
 - [ ] **Step 2: 구현** — UTC 기준 `Date.UTC`로만 계산(로컬 시간대 의존 금지). `toKstDate`는 `now.getTime() + 9h` 후 UTC 날짜 부분. `addMonths`는 결과 달의 마지막 날로 일(day)을 자른다.
 
-- [ ] **Step 3: 통과 확인** — Run: `npx vitest run lib/domain` → PASS
+- [ ] **Step 3: 통과 확인** — Run: `npx vitest run src/lib/domain` → PASS
 
-- [ ] **Step 4: Commit** — `git add lib/domain && git commit -m "feat(domain): add shared types and KST date utils"`
+- [ ] **Step 4: Commit** — `git add src/lib/domain && git commit -m "feat(domain): add shared types and KST date utils"`
 
 ---
 
 ### Task 2: 주행거리 — 추정, 계산기, 실측 검증
 
 **Files:**
-- Create: `lib/domain/odometer.ts`, `lib/domain/__tests__/odometer.test.ts`
+- Create: `src/lib/domain/odometer.ts`, `src/lib/domain/__tests__/odometer.test.ts`
 
 **Interfaces:**
 - Consumes: Task 1
@@ -132,7 +132,7 @@ Run → FAIL
 ### Task 3: 규칙·항목·계절 시드 상수
 
 **Files:**
-- Create: `seed/maintenance.ts`, `seed/__tests__/maintenance.test.ts`
+- Create: `src/server/db/seeds/maintenance.ts`, `src/server/db/seeds/__tests__/maintenance.test.ts`
 
 **Interfaces:**
 - Consumes: Task 1 `Rule`, `FuelType`
@@ -163,14 +163,14 @@ Run → FAIL
 
 - [ ] **Step 3: 통과 확인** → PASS
 
-- [ ] **Step 4: Commit** — `git add seed && git commit -m "feat(seed): add maintenance rules, items and seasonal checklist"`
+- [ ] **Step 4: Commit** — `git add src/server/db/seeds && git commit -m "feat(seed): add maintenance rules, items and seasonal checklist"`
 
 ---
 
 ### Task 4: 정비 규칙 엔진
 
 **Files:**
-- Create: `lib/domain/rules.ts`, `lib/domain/__tests__/rules.test.ts`
+- Create: `src/lib/domain/rules.ts`, `src/lib/domain/__tests__/rules.test.ts`
 
 **Interfaces:**
 - Consumes: Task 1, Task 2 `estimateOdometer`, `latestReading`; 테스트에서 Task 3 `MAINTENANCE_RULES`
@@ -230,14 +230,14 @@ Run → FAIL
 
 - [ ] **Step 3: 통과 확인** → PASS
 
-- [ ] **Step 4: Commit** — `git add lib/domain && git commit -m "feat(domain): add maintenance rule engine"`
+- [ ] **Step 4: Commit** — `git add src/lib/domain && git commit -m "feat(domain): add maintenance rule engine"`
 
 ---
 
 ### Task 5: 보정 제안과 계절
 
 **Files:**
-- Create: `lib/domain/calibration.ts`, `lib/domain/season.ts`, `lib/domain/__tests__/calibration.test.ts`, `lib/domain/__tests__/season.test.ts`
+- Create: `src/lib/domain/calibration.ts`, `src/lib/domain/season.ts`, `src/lib/domain/__tests__/calibration.test.ts`, `src/lib/domain/__tests__/season.test.ts`
 
 **Interfaces:**
 - Consumes: Task 1, Task 2 `latestReading`; 테스트에서 Task 3 `SEASONAL_ITEMS`
@@ -276,14 +276,14 @@ Run → FAIL
 
 - [ ] **Step 3: 통과 확인** → PASS
 
-- [ ] **Step 4: Commit** — `git add lib/domain && git commit -m "feat(domain): add calibration suggestion and seasons"`
+- [ ] **Step 4: Commit** — `git add src/lib/domain && git commit -m "feat(domain): add calibration suggestion and seasons"`
 
 ---
 
 ### Task 6: 알림 후보 계산
 
 **Files:**
-- Create: `lib/domain/alerts.ts`, `lib/domain/__tests__/alerts.test.ts`
+- Create: `src/lib/domain/alerts.ts`, `src/lib/domain/__tests__/alerts.test.ts`
 
 **Interfaces:**
 - Consumes: Task 1 `ItemResult`, `toKstDate`, `daysBetween`; Task 5 `isSeasonStartMonth`, `seasonOf`
@@ -341,6 +341,6 @@ Run → FAIL
 
 - [ ] **Step 3: 전체 도메인 테스트와 커버리지**
 
-Run: `npm i -D @vitest/coverage-v8 && npx vitest run --coverage lib/domain seed` → 모두 PASS, `lib/domain` 구문 커버리지 90% 이상.
+Run: `npm i -D @vitest/coverage-v8 && npx vitest run --coverage src/lib/domain src/server/db/seeds` → 모두 PASS, `src/lib/domain` 구문 커버리지 90% 이상.
 
-- [ ] **Step 4: Commit** — `git add lib/domain package.json package-lock.json && git commit -m "feat(domain): add alert candidate computation"`
+- [ ] **Step 4: Commit** — `git add src/lib/domain package.json package-lock.json && git commit -m "feat(domain): add alert candidate computation"`

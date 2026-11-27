@@ -4,9 +4,9 @@
 
 **Goal:** Next.js 앱을 Cloudflare Workers에 올리고, D1·로그인·Cron·Web Push·GitHub Actions 배포가 **실제로 동작하는지** 3일 안에 확인한다. 이후 모든 기능은 이 기반 위에 올라간다.
 
-**Architecture:** 저장소 루트에 Next.js(App Router) 앱 하나. Cloudflare 권장 방식인 vinext로 Workers에 배포하고, D1은 Worker 바인딩(`import { env } from "cloudflare:workers"`)으로 Drizzle을 통해 접근한다. 매일 실행하는 작업은 `lib/jobs/daily.ts` 한 함수로 두고, Cron(`scheduled()`)과 보호된 HTTP 경로가 둘 다 이 함수를 부른다.
+**Architecture:** 저장소 루트에 Next.js(App Router) 앱 하나. Cloudflare 권장 방식인 vinext로 Workers에 배포하고, D1은 Worker 바인딩(`import { env } from "cloudflare:workers"`)으로 Drizzle을 통해 접근한다. 매일 실행하는 작업은 `src/server/jobs/daily.ts` 한 함수로 두고, Cron(`scheduled()`)과 보호된 HTTP 경로가 둘 다 이 함수를 부른다.
 
-**Tech Stack:** Next.js (App Router) · vinext · Cloudflare Workers · D1 · Drizzle ORM + drizzle-kit · Auth.js (카카오, 구글) · Web Push(VAPID) · Vitest · GitHub Actions · TypeScript strict · Tailwind CSS · npm
+**Tech Stack:** Next.js (App Router) · vinext · Cloudflare Workers · D1 · Drizzle ORM + drizzle-kit · Auth.js (카카오, 구글) · Web Push(VAPID) · Vitest · GitHub Actions · TypeScript strict · 전역 CSS(src/styles) · npm
 
 **Spec:** `docs/superpowers/specs/2026-11-26-car-care-design.md` (8장 아키텍처, 9장 데이터 모델, 10장 알림, 12장 보안, 13장 배포, 15장 0주차)
 
@@ -42,10 +42,12 @@
 
 ### Task 1: 앱 뼈대와 Workers 첫 배포
 
+> **완료 (2026-11-27, 수동 배포 Step 6 제외)** — 실제 결과는 game_servise2 구조를 따름: `src/app`, `@/*` → `./src/*`, 전역 CSS(`src/styles`, Tailwind 제거), ESLint(`eslint-config-next`), TypeScript 6(typescript-eslint 가 7 미지원), dev 포트 3000, `CLAUDE.md`·`.claude/launch.json` 추가. 아래 단계는 기록용.
+
 **Files:**
-- Create: 저장소 루트에 Next.js 앱(`app/`, `package.json`, `tsconfig.json`, Cloudflare 설정 파일 등 생성기가 만드는 파일)
-- Create: `app/api/health/route.ts`
-- Create: `vitest.config.ts`, `app/api/health/route.test.ts`
+- Create: 저장소 루트에 Next.js 앱(`src/app/`, `package.json`, `tsconfig.json`, Cloudflare 설정 파일 등 생성기가 만드는 파일)
+- Create: `src/app/api/health/route.ts`
+- Create: `vitest.config.ts`, `src/app/api/health/route.test.ts`
 - Modify: `.gitignore` (`.dev.vars`, `.wrangler/`, 빌드 산출물)
 - Keep: `README.md`, `docs/`
 
@@ -62,7 +64,7 @@ Run: `npm create cloudflare@latest -- mycar-note --framework=next` (Cloudflare �
 
 - [ ] **Step 3: Vitest 설치·설정 후 실패하는 테스트 작성**
 
-`npm i -D vitest`. `app/api/health/route.test.ts`:
+`npm i -D vitest`. `src/app/api/health/route.test.ts`:
 ```ts
 import { GET } from "./route";
 it("health returns ok", async () => {
@@ -73,7 +75,7 @@ it("health returns ok", async () => {
 ```
 Run: `npm test` → Expected: FAIL (route 없음)
 
-- [ ] **Step 4: `app/api/health/route.ts`에 `export function GET(): Response` 구현** — `Response.json({ ok: true })`.
+- [ ] **Step 4: `src/app/api/health/route.ts`에 `export function GET(): Response` 구현** — `Response.json({ ok: true })`.
 
 - [ ] **Step 5: 검사 전부 통과 확인**
 
@@ -97,7 +99,7 @@ git add -A && git commit -m "chore: scaffold Next.js app on Cloudflare Workers (
 - Create: `.github/workflows/ci.yml`, `.github/workflows/deploy.yml`
 
 **Interfaces:**
-- Consumes: Task 1의 npm 스크립트, Task 3 이후 존재할 `drizzle/` 마이그레이션 폴더(없으면 마이그레이션 단계가 아무것도 하지 않음)
+- Consumes: Task 1의 npm 스크립트, Task 3 이후 존재할 `src/server/db/migrations/` 마이그레이션 폴더(없으면 마이그레이션 단계가 아무것도 하지 않음)
 
 - [ ] **Step 1: `ci.yml` 작성** — 트리거: `pull_request`, `push`(main). 단계: checkout → `actions/setup-node`(Node 22 LTS, npm 캐시) → `npm ci` → `npm run lint` → `npm run typecheck` → `npm test` → `npm run build`.
 
@@ -124,12 +126,12 @@ git add .github && git commit -m "ci: add CI and Cloudflare deploy workflows"
 ### Task 3: D1 + Drizzle, 전체 스키마
 
 **Files:**
-- Create: `lib/db/schema.ts`, `lib/db/client.ts`, `drizzle.config.ts`, `drizzle/0000_*.sql`
-- Create: `lib/db/schema.test.ts`
+- Create: `src/server/db/schema.ts`, `src/server/db/client.ts`, `drizzle.config.ts`, `src/server/db/migrations/0000_*.sql`
+- Create: `src/server/db/schema.test.ts`
 - Modify: Cloudflare 설정 파일(D1 바인딩 `DB`)
 
 **Interfaces:**
-- Produces: `getDb(): DrizzleD1Database<typeof schema>` (`lib/db/client.ts`, `env.DB` 사용); 스키마 테이블 export 이름은 아래 표 그대로
+- Produces: `getDb(): DrizzleD1Database<typeof schema>` (`src/server/db/client.ts`, `env.DB` 사용); 스키마 테이블 export 이름은 아래 표 그대로
 
 | export | 테이블 | 컬럼 (설계 9장 그대로) |
 |---|---|---|
@@ -153,7 +155,7 @@ git add .github && git commit -m "ci: add CI and Cloudflare deploy workflows"
 
 - [ ] **Step 2: `npm i drizzle-orm @auth/drizzle-adapter && npm i -D drizzle-kit`, 실패하는 스키마 테스트 작성**
 
-`lib/db/schema.test.ts`: 마이그레이션 SQL을 적용한 D1(테스트 환경은 `@cloudflare/vitest-pool-workers`의 D1 바인딩)에서
+`src/server/db/schema.test.ts`: 마이그레이션 SQL을 적용한 D1(테스트 환경은 `@cloudflare/vitest-pool-workers`의 D1 바인딩)에서
 ```ts
 it("cascades user delete to vehicles", async () => { /* insert user, vehicle; delete user; expect vehicles count 0 */ });
 it("rejects duplicate notification dedupe_key", async () => { /* insert twice → second throws */ });
@@ -162,7 +164,7 @@ it("rejects duplicate push endpoint", async () => { /* same */ });
 `@cloudflare/vitest-pool-workers`가 vinext 프로젝트에서 설정이 막히면, 이 3개 테스트만 `better-sqlite3`에 같은 마이그레이션 SQL을 적용해 돌린다(SQLite 동작이 같음). 어느 쪽을 썼는지 Task 7 결정 기록에 남긴다.
 Run: `npm test` → Expected: FAIL (스키마 없음)
 
-- [ ] **Step 3: `lib/db/schema.ts` 작성(위 표), `npx drizzle-kit generate`로 `drizzle/0000_*.sql` 생성, `lib/db/client.ts`에 `getDb()` 구현**
+- [ ] **Step 3: `src/server/db/schema.ts` 작성(위 표), `npx drizzle-kit generate`로 `src/server/db/migrations/0000_*.sql` 생성, `src/server/db/client.ts`에 `getDb()` 구현**
 
 - [ ] **Step 4: 테스트 통과 + 로컬·원격 적용**
 
@@ -171,7 +173,7 @@ Run: `npm test` → PASS. `npx wrangler d1 migrations apply mycar-note-db --loca
 - [ ] **Step 5: Commit**
 
 ```bash
-git add lib/db drizzle drizzle.config.ts package.json package-lock.json <cloudflare 설정 파일>
+git add src/server/db drizzle.config.ts package.json package-lock.json <cloudflare 설정 파일>
 git commit -m "feat(db): add D1 schema with Drizzle migrations"
 ```
 
@@ -180,8 +182,8 @@ git commit -m "feat(db): add D1 schema with Drizzle migrations"
 ### Task 4: 로그인 (Auth.js, 카카오·구글)
 
 **Files:**
-- Create: `auth.ts` (Auth.js 설정), `app/api/auth/[...nextauth]/route.ts`, `app/login/page.tsx`
-- Create: `lib/auth/session.ts`, `lib/auth/session.test.ts`
+- Create: `src/server/auth/config.ts` (Auth.js 설정), `src/app/api/auth/[...nextauth]/route.ts`, `src/app/login/page.tsx`
+- Create: `src/server/auth/session.ts`, `src/server/auth/session.test.ts`
 
 **Interfaces:**
 - Consumes: Task 3 `getDb()`, `users`/`accounts`/`sessions`
@@ -189,7 +191,7 @@ git commit -m "feat(db): add D1 schema with Drizzle migrations"
 
 - [ ] **Step 1: [사람] OAuth 앱 등록** — 카카오(동의 항목: 닉네임, 프로필 이미지, 이메일 선택), 구글. Redirect URI: `https://<worker>.workers.dev/api/auth/callback/kakao`, `.../google`, 로컬 `http://localhost:<port>/api/auth/callback/...`. 키는 `wrangler secret put`과 `.dev.vars`에만.
 
-- [ ] **Step 2: 실패하는 테스트** — `lib/auth/session.test.ts`: 세션 조회 함수를 목으로 바꿔 `requireUserId()`가 세션 없음 → `UnauthorizedError`, 세션 있음 → user id 반환.
+- [ ] **Step 2: 실패하는 테스트** — `src/server/auth/session.test.ts`: 세션 조회 함수를 목으로 바꿔 `requireUserId()`가 세션 없음 → `UnauthorizedError`, 세션 있음 → user id 반환.
 
 - [ ] **Step 3: 구현** — `next-auth` v5 + `@auth/drizzle-adapter`(Task 3 테이블), providers Kakao·Google, session strategy `database`. `/login` 페이지에 버튼 두 개.
 
@@ -202,7 +204,7 @@ Run: `npm test` → PASS. 로컬과 배포본에서 카카오·구글 로그인 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add auth.ts app/api/auth app/login lib/auth package.json package-lock.json
+git add src/app/api/auth src/app/login src/server/auth package.json package-lock.json
 git commit -m "feat(auth): add Kakao and Google login with Auth.js"
 ```
 
@@ -211,12 +213,12 @@ git commit -m "feat(auth): add Kakao and Google login with Auth.js"
 ### Task 5: 일일 작업 연결 (Cron + 보호된 HTTP 경로)
 
 **Files:**
-- Create: `lib/jobs/daily.ts`, `lib/internal/token.ts`, `lib/internal/token.test.ts`
-- Create: `app/api/internal/run-daily/route.ts`, `app/api/internal/run-daily/route.test.ts`
+- Create: `src/server/jobs/daily.ts`, `src/server/internal/token.ts`, `src/server/internal/token.test.ts`
+- Create: `src/app/api/internal/run-daily/route.ts`, `src/app/api/internal/run-daily/route.test.ts`
 - Modify: Worker 진입점 또는 vinext가 제공하는 방식으로 `scheduled()` 연결, Cloudflare 설정 파일에 `crons = ["0 0 * * *"]`
 
 **Interfaces:**
-- Produces: `runDaily(now: Date): Promise<{ startedAt: string; processed: number }>` (`lib/jobs/daily.ts`) — 이 계획에서는 시작 로그와 `{processed: 0}`만 반환, 실제 내용은 계획 4에서 채움; `isValidJobToken(header: string | null, secret: string): boolean`
+- Produces: `runDaily(now: Date): Promise<{ startedAt: string; processed: number }>` (`src/server/jobs/daily.ts`) — 이 계획에서는 시작 로그와 `{processed: 0}`만 반환, 실제 내용은 계획 4에서 채움; `isValidJobToken(header: string | null, secret: string): boolean`
 
 - [ ] **Step 1: 실패하는 테스트**
 ```ts
@@ -232,7 +234,7 @@ Run: `npm test` → FAIL
 
 - [ ] **Step 2: 구현** — `isValidJobToken`은 두 값을 `TextEncoder`로 바이트화 후 길이가 다르면 false, 같으면 바이트 XOR 누적으로 비교(Workers에서 Node `timingSafeEqual`에 의존하지 않기 위함). 경로는 `POST`만, 헤더 `Authorization: Bearer <INTERNAL_JOB_TOKEN>`.
 
-- [ ] **Step 3: `scheduled()` 연결** — vinext 문서에서 커스텀 Worker 진입점(fetch는 앱에 위임, `scheduled`는 `runDaily(new Date(controller.scheduledTime))` 호출) 방법을 찾아 적용한다. 방법이 없으면 대안: 같은 저장소 `workers/cron/` 에 작은 Worker를 만들어 같은 D1을 바인딩하고 `lib/jobs/daily.ts`를 import한다. 택한 방법을 Task 7에 기록.
+- [ ] **Step 3: `scheduled()` 연결** — vinext 문서에서 커스텀 Worker 진입점(fetch는 앱에 위임, `scheduled`는 `runDaily(new Date(controller.scheduledTime))` 호출) 방법을 찾아 적용한다. 방법이 없으면 대안: 같은 저장소 `workers/cron/` 에 작은 Worker를 만들어 같은 D1을 바인딩하고 `src/server/jobs/daily.ts`를 import한다. 택한 방법을 Task 7에 기록.
 
 - [ ] **Step 4: 검증**
 
@@ -241,7 +243,7 @@ Run: `npm test` → PASS. 로컬 dev 서버의 `/cdn-cgi/local/explorer` → Cro
 - [ ] **Step 5: Commit**
 
 ```bash
-git add lib/jobs lib/internal app/api/internal <설정 파일> && git commit -m "feat(jobs): wire daily job to cron trigger and protected route"
+git add src/server/jobs src/server/internal src/app/api/internal <설정 파일> && git commit -m "feat(jobs): wire daily job to cron trigger and protected route"
 ```
 
 ---
@@ -250,9 +252,9 @@ git add lib/jobs lib/internal app/api/internal <설정 파일> && git commit -m 
 
 **Files:**
 - Create: `public/sw.js`, `public/manifest.webmanifest`, `public/icons/icon-192.png`, `public/icons/icon-512.png`
-- Create: `lib/push/send.ts`, `lib/push/send.test.ts`, `lib/push/subscriptions.ts`, `lib/push/subscriptions.test.ts`
-- Create: `app/api/push/subscribe/route.ts`, `app/api/push/test/route.ts`
-- Create: `components/PushSubscribeButton.tsx` (임시로 `/login` 아래나 `/dev/push`에 노출)
+- Create: `src/server/push/send.ts`, `src/server/push/send.test.ts`, `src/server/push/subscriptions.ts`, `src/server/push/subscriptions.test.ts`
+- Create: `src/app/api/push/subscribe/route.ts`, `src/app/api/push/test/route.ts`
+- Create: `src/components/common/PushSubscribeButton.tsx` (임시로 `/login` 아래나 `/dev/push`에 노출)
 
 **Interfaces:**
 - Consumes: Task 3 `pushSubscriptions`, Task 4 `requireUserId()`
@@ -289,7 +291,7 @@ Run: `npm test` → PASS. **[사람]** 배포본에서 로그인 → 구독 버�
 - [ ] **Step 5: Commit**
 
 ```bash
-git add public lib/push app/api/push components/PushSubscribeButton.tsx package.json package-lock.json
+git add public src/server/push src/app/api/push src/components/common/PushSubscribeButton.tsx package.json package-lock.json
 git commit -m "feat(push): add web push subscribe and send path"
 ```
 

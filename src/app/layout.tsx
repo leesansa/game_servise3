@@ -1,0 +1,18 @@
+import type { Metadata } from 'next'
+// 순서 중요: 토큰 → 리셋 → 기본값
+import '@/styles/variables.css'
+import '@/styles/reset.css'
+import '@/styles/globals.css'
+
+export const metadata: Metadata = {
+  title: '마이카노트 — 내 차 맞춤 정비 알림',
+  description: '내 차와 주행 습관에 맞춰 정비 시기를 계산하고 알려주는 서비스',
+}
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="ko">
+      <body>{children}</body>
+    </html>
+  )
+}

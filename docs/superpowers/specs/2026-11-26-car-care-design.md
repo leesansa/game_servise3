@@ -402,7 +402,7 @@
 | 지도 | 카카오맵 JavaScript SDK (services) | 브라우저에서 호출, 도메인 제한 키 |
 | 쇼핑·뉴스 | 네이버 검색 API (쇼핑, 뉴스) | 서버에서만 호출 |
 | 입력 검증 | zod | 모든 Server Action·Route Handler 입력 |
-| 스타일 | Tailwind CSS | 빌더 재량으로 컴포넌트 라이브러리 추가 가능 |
+| 스타일 | 전역 CSS (`src/styles`, 디자인 토큰) | 기존 프로젝트와 같은 방식. Tailwind는 쓰지 않음 |
 | 테스트 | Vitest (단위), Playwright (E2E 핵심 1~2개 흐름) | |
 | CI/CD | **GitHub Actions** + `cloudflare/wrangler-action` (또는 `cf` CLI) | |
 | 언어 | TypeScript (strict) | |
@@ -435,24 +435,29 @@
  [GitHub] ── push/PR ──▶ [GitHub Actions] ── 검사·테스트·빌드 ──▶ wrangler deploy + D1 마이그레이션
 ```
 
-### 8.3 폴더 구조 (제안)
+### 8.3 폴더 구조
+
+기존 프로젝트 game_servise2(vinext + Next.js, `src/` 구조, 전역 CSS)와 fridgeO(서버 전용 코드·마이그레이션·시드 분리)의 구조를 따른다.
 
 ```
-/app                    페이지, 레이아웃, route handlers (app/api/*)
-/components             UI 컴포넌트
-/lib/domain             순수 로직: odometer.ts, rules.ts, calibration.ts, season.ts, dates.ts
-/lib/domain/__tests__   도메인 단위 테스트
-/lib/db                 drizzle 스키마, 쿼리 함수
-/lib/external           naver.ts, (kakao 키 설정)
-/lib/push               VAPID, 발송, 구독 정리
-/lib/jobs               daily.ts (Cron에서 호출하는 작업, HTTP 테스트 경로에서도 호출 가능)
-/public                 manifest.webmanifest, 아이콘, sw.js
-/drizzle                마이그레이션 SQL
-/seed                   차종, 규칙, 계절, 데모 데이터
-/.github/workflows      ci.yml, deploy.yml
+src/app/                 페이지, 레이아웃, route handlers (app/api/*)
+src/components/          common/(공용 부품), 화면별 폴더
+src/hooks/               클라이언트 훅
+src/lib/domain/          순수 로직: odometer.ts, rules.ts, calibration.ts, season.ts, dates.ts, alerts.ts
+src/lib/domain/__tests__ 도메인 단위 테스트
+src/server/db/           drizzle 스키마(schema.ts), client.ts, migrations/, seeds/(차종·규칙·계절·데모)
+src/server/auth/         Auth.js 설정, 세션 헬퍼
+src/server/external/     naver.ts
+src/server/push/         VAPID, 발송, 구독 정리
+src/server/jobs/         daily.ts (Cron에서 호출하는 작업, HTTP 테스트 경로에서도 호출 가능)
+src/server/http.ts       HttpError 등 route handler 공용 도구
+src/styles/              전역 CSS (variables → reset → globals → 화면별 → responsive)
+src/types/index.ts       화면·서버 공용 타입
+public/                  manifest.webmanifest, 아이콘, sw.js
+.github/workflows/       ci.yml, deploy.yml
 ```
 
-- **원칙**: `lib/domain`은 DB·네트워크·현재 시간에 의존하지 않는다(오늘 날짜는 인자로 받음). 리뷰어가 가장 먼저 읽을 코드이므로 가장 깔끔하게 유지한다.
+- **원칙**: `src/lib/domain`은 DB·네트워크·현재 시간에 의존하지 않는다(오늘 날짜는 인자로 받음). 리뷰어가 가장 먼저 읽을 코드이므로 가장 깔끔하게 유지한다.
 
 ---
 
@@ -534,7 +539,7 @@ for each 데모가 아니고 전체 끄기가 아닌 사용자의 차량:   (푸
 - 처리량: 포트폴리오 규모(사용자 수십 명 이하)에서는 한 번의 실행으로 충분하다. 사용자가 늘면 Queue로 분산하는 것이 다음 단계라고 문서(README)에 적어 둔다.
 
 ### 10.3 Cron 테스트 경로
-- Cloudflare 프리뷰 환경에서는 Cron이 실행되지 않으므로, 같은 작업 함수(`lib/jobs/daily.ts`)를 호출하는 **보호된 HTTP 경로**(`POST /api/internal/run-daily`, 헤더의 비밀 토큰 필요, 운영에서는 비활성 또는 토큰 필수)를 둔다.
+- Cloudflare 프리뷰 환경에서는 Cron이 실행되지 않으므로, 같은 작업 함수(`src/server/jobs/daily.ts`)를 호출하는 **보호된 HTTP 경로**(`POST /api/internal/run-daily`, 헤더의 비밀 토큰 필요, 운영에서는 비활성 또는 토큰 필수)를 둔다.
 - 로컬에서는 Cloudflare Local Explorer의 Cron 실행 기능으로도 테스트할 수 있다.
 
 ### 10.4 알림 내용 예시
@@ -622,7 +627,7 @@ for each 데모가 아니고 전체 끄기가 아닌 사용자의 차량:   (푸
 
 | 수준 | 대상 | 도구 | 기준 |
 |---|---|---|---|
-| 단위 | `lib/domain/*` (추정, 규칙 엔진, 상태 구간, 보정, 계절, KST 날짜) | Vitest | 7.5 예시 + 7.7 경계 사례 전부, 도메인 커버리지 90% 이상 |
+| 단위 | `src/lib/domain/*` (추정, 규칙 엔진, 상태 구간, 보정, 계절, KST 날짜) | Vitest | 7.5 예시 + 7.7 경계 사례 전부, 도메인 커버리지 90% 이상 |
 | 단위 | 알림 후보 계산·dedupe_key 생성 | Vitest | DUE_SOON 1회, OVERDUE 직전 알림 14일 후 재알림·주기당 총 3회, 정비 기록 후 재알림 가능, 추정 항목은 DUE_SOON만, 데모 사용자 제외, 구독 없어도 알림함 기록 |
 | 통합 | Server Action 소유권 검사, 실측 감소 거부 | Vitest + 로컬 D1 | 타인 차량 접근 시 거부 |
 | E2E | 데모 진입 → 대시보드 → 항목 상세 → 지도 이동 | Playwright | CI에서 실행(외부 API는 목 처리) |
@@ -644,7 +649,7 @@ for each 데모가 아니고 전체 끄기가 아닌 사용자의 차량:   (푸
 
 ### 나. 1주차 — 데이터와 계산의 뼈대
 - [ ] 스키마 전체 + 시드(차종 60~100개, 규칙, 계절 항목)
-- [ ] `lib/domain`: KST 날짜 유틸, 주행거리 추정, 규칙 엔진, 상태 구간 + **단위 테스트**
+- [ ] `src/lib/domain`: KST 날짜 유틸, 주행거리 추정, 규칙 엔진, 상태 구간 + **단위 테스트**
 - [ ] 온보딩 3단계 (차량 → 주행 습관 계산기 → 최근 정비)
 - [ ] 대시보드 1차 (계산 결과 목록)
 
@@ -678,7 +683,7 @@ for each 데모가 아니고 전체 끄기가 아닌 사용자의 차량:   (푸
 | 위험 | 영향 | 대응 |
 |---|---|---|
 | vinext와 Auth.js·라이브러리 호환 문제 | 로그인 불가, 일정 지연 | 0주차에 확인, 막히면 OpenNext로 전환 |
-| vinext에서 Cron `scheduled()` 연결 방법 불명확 | 알림 불가 | 0주차에 확인. 대안: 같은 저장소에 Cron 전용 작은 Worker를 두고 D1을 공유, 일일 작업 코드는 `lib/jobs`에서 공유 |
+| vinext에서 Cron `scheduled()` 연결 방법 불명확 | 알림 불가 | 0주차에 확인. 대안: 같은 저장소에 Cron 전용 작은 Worker를 두고 D1을 공유, 일일 작업 코드는 `src/server/jobs`에서 공유 |
 | Web Push 라이브러리가 Workers에서 동작 안 함 | 알림 불가 | Web Crypto 기반 라이브러리 사용, 최후에는 직접 구현(VAPID JWT ES256 + aes128gcm) |
 | iOS 푸시 제약 (PWA 설치 필요) | 아이폰 사용자 알림 누락 | 홈 화면 추가 안내 + 알림함으로 보완 |
 | 정비 주기 수치의 정확성 | 신뢰도 하락 | 참고값 표기, 제조사 공식 안내와 대조, 출처 README 명시 |
@@ -730,7 +735,7 @@ Route Handler·Server Action이 백엔드, 저장소 하나. 백엔드 로직이
 - 정비 규칙 수치(6.2), 계절 항목(6.3)
 - 데모 모드(기능 가, 4.4)와 그 데이터 구성
 - 알림 발송 시각 KST 09:00, 하루 묶음 발송
-- 기술 세부: vinext, D1, Drizzle, Auth.js, Tailwind, Vitest, Playwright
+- 기술 세부: vinext, D1, Drizzle, Auth.js, 전역 CSS, Vitest, Playwright
 - 사용자당 차량 1대 화면(MVP), 데이터 모델은 다수 허용
 
 ### 18.3 빌더 재량 (설계에 영향 없는 세부)
