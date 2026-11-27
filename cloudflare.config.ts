@@ -22,6 +22,9 @@ export default defineConfig({
       AUTH_KAKAO_SECRET: bindings.secret(),
       AUTH_GOOGLE_ID: bindings.secret(),
       AUTH_GOOGLE_SECRET: bindings.secret(),
+      // 로컬 전용(.dev.vars 에 http://localhost:3000). vinext 는 x-forwarded-proto 를 안 붙여서 Auth.js 서버 액션이
+      // 주소를 https 로 추측해 redirect_uri_mismatch 가 남. 배포에서는 비워 두면 https 로 맞게 추측함
+      AUTH_URL: bindings.secret(),
     },
   }),
 });

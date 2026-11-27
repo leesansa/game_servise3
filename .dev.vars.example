@@ -1,9 +1,11 @@
 # 로컬 개발용 비밀값 예시. 이 파일을 .dev.vars 로 복사해서 값을 채운다 (.dev.vars 는 커밋하지 않음)
 # AUTH_SECRET 은 아무 긴 임의 문자열: npx auth secret 또는 openssl rand -base64 32
 AUTH_SECRET=
-# 카카오 개발자 콘솔 > 내 애플리케이션 > 앱 키(REST API 키) / 카카오 로그인 > 보안(Client Secret)
+# 카카오디벨로퍼스 > 앱 > 플랫폼 키 > REST API 키: 키 값 / 키 설정의 클라이언트 시크릿 "카카오 로그인" 코드
 AUTH_KAKAO_ID=
 AUTH_KAKAO_SECRET=
-# Google Cloud Console > API 및 서비스 > 사용자 인증 정보 > OAuth 2.0 클라이언트 ID
+# Google Cloud > Google 인증 플랫폼 > 클라이언트: 클라이언트 ID / 보안 비밀번호(만들 때 한 번만 보임)
 AUTH_GOOGLE_ID=
 AUTH_GOOGLE_SECRET=
+# 로컬 전용: Auth.js 기준 주소 (vinext 가 x-forwarded-proto 를 안 붙여 https 로 잘못 추측하는 것을 막음). 배포에는 넣지 않음
+AUTH_URL=http://localhost:3000
