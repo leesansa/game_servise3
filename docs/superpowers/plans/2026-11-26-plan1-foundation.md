@@ -96,7 +96,7 @@ git add -A && git commit -m "chore: scaffold Next.js app on Cloudflare Workers (
 
 ### Task 2: GitHub Actions CI·배포
 
-> **워크플로 작성 (2026-11-27), 실행 확인은 GitHub Secrets 등록 · push 후** — game_servise2 의 deploy.yml 방식(시크릿 확인 · 순차 배포 · Node 24)을 따름. `ci.yml`: PR · main 외 브랜치 push 때 lint · typecheck · test · build. `deploy.yml`: main push 때 check → `npm run db:migrate:remote` → `npm run deploy -- --message ""` → `/api/health` 스모크. 로컬 확인: YAML 문법, `npm ci` 잠금 파일 일치, 대기 중 마이그레이션 없음.
+> **CI 확인 완료 (2026-11-27), deploy.yml 은 main 병합 때 첫 실행** — GitHub Secrets 등록, 브랜치 push 후 CI 통과(처음엔 .cloudflare/types 가 없어 typecheck 실패 → typecheck 스크립트가 `cf workers types` 먼저 실행하도록 수정). game_servise2 의 deploy.yml 방식(시크릿 확인 · 순차 배포 · Node 24)을 따름. `ci.yml`: PR · main 외 브랜치 push 때 lint · typecheck · test · build. `deploy.yml`: main push 때 check → `npm run db:migrate:remote` → `npm run deploy -- --message ""` → `/api/health` 스모크. 로컬 확인: YAML 문법, `npm ci` 잠금 파일 일치, 대기 중 마이그레이션 없음.
 
 **Files:**
 - Create: `.github/workflows/ci.yml`, `.github/workflows/deploy.yml`
