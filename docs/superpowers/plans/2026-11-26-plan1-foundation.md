@@ -259,7 +259,7 @@ git add src/server/jobs src/server/internal src/app/api/internal <설정 파일>
 
 ### Task 6: Web Push 발송 경로
 
-> **로컬 완료 (2026-11-27), 배포는 VAPID 키 등록 후** — 라이브러리 `@block65/webcrypto-web-push` 2.x(Web Crypto, aes128gcm, Workers 동작). Edge 에서 구독 → 테스트 알림 수신, `last_success_at` 기록 확인. 함수는 테스트를 위해 `db` 를 첫 인자로 받음(`upsertSubscription(db, …)`, `sendToUser(db, …, vapid, fetchFn)`), 테스트 DB 는 `src/server/db/test-db.ts`(node:sqlite + drizzle sqlite-proxy). 아이콘은 임시 SVG(iOS 홈 화면 PNG 는 Figma 아이콘이 나오면). 키 생성: `node scripts/vapid-keys.mjs`.
+> **완료 (2026-11-27)** — 배포 사이트에서도 구독 → 테스트 알림 수신 확인(대시보드에 VAPID Secret 2개 등록 후 배포). 라이브러리 `@block65/webcrypto-web-push` 2.x(Web Crypto, aes128gcm, Workers 동작). Edge 에서 구독 → 테스트 알림 수신, `last_success_at` 기록 확인. 함수는 테스트를 위해 `db` 를 첫 인자로 받음(`upsertSubscription(db, …)`, `sendToUser(db, …, vapid, fetchFn)`), 테스트 DB 는 `src/server/db/test-db.ts`(node:sqlite + drizzle sqlite-proxy). 아이콘은 임시 SVG(iOS 홈 화면 PNG 는 Figma 아이콘이 나오면). 키 생성: `node scripts/vapid-keys.mjs`.
 
 **Files:**
 - Create: `public/sw.js`, `public/manifest.webmanifest`, `public/icons/icon-192.png`, `public/icons/icon-512.png`
