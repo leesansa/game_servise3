@@ -14,6 +14,10 @@
   --c-over: #c0392b;
   --c-unknown: #8a94a3;
 
+  /* 외부 브랜드 (로그인 버튼) */
+  --c-kakao: #fee500;
+  --c-kakao-text: rgb(0 0 0 / 85%);
+
   /* 글꼴 */
   --f-kr: 'Pretendard', 'Malgun Gothic', system-ui, sans-serif;
 

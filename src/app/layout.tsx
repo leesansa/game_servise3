@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
-// 순서 중요: 토큰 → 리셋 → 기본값
+// 순서 중요: 토큰 → 리셋 → 기본값 → 화면별
 import '@/styles/variables.css'
 import '@/styles/reset.css'
 import '@/styles/globals.css'
+import '@/styles/login.css'
 
 export const metadata: Metadata = {
   title: '마이카노트 — 내 차 맞춤 정비 알림',

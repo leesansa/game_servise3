@@ -183,6 +183,8 @@ git commit -m "feat(db): add D1 schema with Drizzle migrations"
 
 ### Task 4: 로그인 (Auth.js, 카카오·구글)
 
+> **코드 완료 (2026-11-27), 실제 로그인 확인은 OAuth 키 등록 후** — next-auth `5.0.0-beta.32`(고정) + `@auth/drizzle-adapter`, vinext 에서 동작 확인: `/api/auth/providers` 200, 서버 액션 signIn 이 카카오 · 구글 인증 주소로 302. 비밀값은 `cloudflare.config.ts` 의 `bindings.secret()` 으로 선언, 로컬은 `.dev.vars`(예시 `.dev.vars.example`), 배포는 대시보드 Workers > mycar-note > Settings > Variables and Secrets. 설정 파일 경로: `src/server/auth/config.ts`.
+
 **Files:**
 - Create: `src/server/auth/config.ts` (Auth.js 설정), `src/app/api/auth/[...nextauth]/route.ts`, `src/app/login/page.tsx`
 - Create: `src/server/auth/session.ts`, `src/server/auth/session.test.ts`
