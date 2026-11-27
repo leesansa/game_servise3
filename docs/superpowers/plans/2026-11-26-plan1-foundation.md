@@ -42,7 +42,7 @@
 
 ### Task 1: 앱 뼈대와 Workers 첫 배포
 
-> **완료 (2026-11-27, 수동 배포 Step 6 제외)** — 실제 결과는 game_servise2 구조를 따름: `src/app`, `@/*` → `./src/*`, 전역 CSS(`src/styles`, Tailwind 제거), ESLint(`eslint-config-next`), TypeScript 6(typescript-eslint 가 7 미지원), dev 포트 3000, `CLAUDE.md`·`.claude/launch.json` 추가. 아래 단계는 기록용.
+> **완료 (2026-11-27)** — 첫 배포: https://mycar-note.fridgeo.workers.dev (`npm run deploy` = `vinext-cloudflare deploy`, 로컬은 cf CLI OAuth 로그인 사용). 실제 결과는 game_servise2 구조를 따름: `src/app`, `@/*` → `./src/*`, 전역 CSS(`src/styles`, Tailwind 제거), ESLint(`eslint-config-next`), TypeScript 6(typescript-eslint 가 7 미지원), dev 포트 3000, `CLAUDE.md`·`.claude/launch.json` 추가. 아래 단계는 기록용.
 
 **Files:**
 - Create: 저장소 루트에 Next.js 앱(`src/app/`, `package.json`, `tsconfig.json`, Cloudflare 설정 파일 등 생성기가 만드는 파일)
