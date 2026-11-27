@@ -310,6 +310,8 @@ git commit -m "feat(push): add web push subscribe and send path"
 
 ### Task 7: 런타임 결정 기록 (필요 시 OpenNext 전환)
 
+> **완료 (2026-11-27)** — `docs/decisions/0001-runtime.md`: vinext 유지, OpenNext 전환 불필요. 최종 확인 lint · typecheck · test(33) · build 통과.
+
 **Files:**
 - Create: `docs/decisions/0001-runtime.md`
 
