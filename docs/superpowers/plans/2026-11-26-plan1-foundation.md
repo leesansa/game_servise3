@@ -183,7 +183,7 @@ git commit -m "feat(db): add D1 schema with Drizzle migrations"
 
 ### Task 4: 로그인 (Auth.js, 카카오·구글)
 
-> **완료 (2026-11-27, 로컬)** — 카카오 · 구글 실제 로그인 성공, 로컬 D1 에 users · accounts · sessions 저장 확인(로그아웃 시 세션 삭제도 확인). 카카오는 이메일 동의항목이 없어 email 이 비어 있음(정상). vinext 는 x-forwarded-proto 를 안 붙여 서버 액션 signIn 이 https 로 추측 → 로컬 전용 `AUTH_URL` 로 해결. 배포 사이트 로그인은 Cloudflare 에 비밀값 5개(AUTH_URL 제외) 등록 후 재배포해야 확인 가능. next-auth `5.0.0-beta.32`(고정) + `@auth/drizzle-adapter`, vinext 에서 동작 확인: `/api/auth/providers` 200, 서버 액션 signIn 이 카카오 · 구글 인증 주소로 302. 비밀값은 `cloudflare.config.ts` 의 `bindings.secret()` 으로 선언, 로컬은 `.dev.vars`(예시 `.dev.vars.example`), 배포는 대시보드 Workers > mycar-note > Settings > Variables and Secrets. 설정 파일 경로: `src/server/auth/config.ts`.
+> **완료 (2026-11-27, 로컬)** — 카카오 · 구글 실제 로그인 성공, 로컬 D1 에 users · accounts · sessions 저장 확인(로그아웃 시 세션 삭제도 확인). 카카오는 이메일 동의항목이 없어 email 이 비어 있음(정상). vinext 는 x-forwarded-proto 를 안 붙여 서버 액션 signIn 이 https 로 추측 → 로컬 전용 `AUTH_URL` 로 해결. 배포 사이트도 확인 완료(2026-11-27): 대시보드에 Secret 5개 + `AUTH_URL=https://mycar-note.fridgeo.workers.dev`(선언한 secret 은 배포 시 필수) 등록 후 재배포, 카카오 · 구글 로그인 성공 및 원격 D1 저장 확인. next-auth `5.0.0-beta.32`(고정) + `@auth/drizzle-adapter`, vinext 에서 동작 확인: `/api/auth/providers` 200, 서버 액션 signIn 이 카카오 · 구글 인증 주소로 302. 비밀값은 `cloudflare.config.ts` 의 `bindings.secret()` 으로 선언, 로컬은 `.dev.vars`(예시 `.dev.vars.example`), 배포는 대시보드 Workers > mycar-note > Settings > Variables and Secrets. 설정 파일 경로: `src/server/auth/config.ts`.
 
 **Files:**
 - Create: `src/server/auth/config.ts` (Auth.js 설정), `src/app/api/auth/[...nextauth]/route.ts`, `src/app/login/page.tsx`

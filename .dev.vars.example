@@ -7,5 +7,5 @@ AUTH_KAKAO_SECRET=
 # Google Cloud > Google 인증 플랫폼 > 클라이언트: 클라이언트 ID / 보안 비밀번호(만들 때 한 번만 보임)
 AUTH_GOOGLE_ID=
 AUTH_GOOGLE_SECRET=
-# 로컬 전용: Auth.js 기준 주소 (vinext 가 x-forwarded-proto 를 안 붙여 https 로 잘못 추측하는 것을 막음). 배포에는 넣지 않음
+# Auth.js 기준 주소 (vinext 가 x-forwarded-proto 를 안 붙여 주소를 잘못 추측하는 것을 막음). 배포 값은 https://mycar-note.fridgeo.workers.dev
 AUTH_URL=http://localhost:3000
