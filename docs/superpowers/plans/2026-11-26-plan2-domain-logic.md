@@ -14,6 +14,7 @@
 계획 1의 런타임 결정과 무관하므로 **계획 1과 병행 가능**하다. 계획 1 Task 1(Vitest 설치) 이후에 시작하거나, 먼저 시작한다면 `npm i -D vitest typescript` 후 `vitest.config.ts` 없이 `npx vitest run src/lib/domain`으로 돌린다. 화면, DB 저장, 알림 문구·발송은 계획 3·4에서 이 함수들을 호출한다.
 
 ## Global Constraints
+- 화면의 시각 디자인은 사용자의 Figma 디자인이 오면 적용한다. 그 전까지 화면은 기능 우선 기본 화면(토큰 기반 최소 스타일)으로 두고, 디자인을 임의로 정하지 않는다 (CLAUDE.md "디자인 (Figma)").
 - `src/lib/domain/**`는 `Date.now()`, `new Date()`(인자 없이), `fetch`, DB, 환경 변수를 쓰지 않는다. 현재 시각은 `toKstDate(now)`로 바꿔 인자로 넘긴다.
 - 날짜 타입은 `IsoDate = string` (`YYYY-MM-DD`, KST). 시각 타입은 ISO 문자열(UTC).
 - 연료 타입 값: `"GASOLINE" | "DIESEL" | "LPG" | "HYBRID" | "EV"`.

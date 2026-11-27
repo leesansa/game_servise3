@@ -22,6 +22,7 @@
 각 작업에서 이 일이 필요한 단계는 **[사람]**으로 표시한다. 비밀값은 채팅이나 저장소에 쓰지 않고 `wrangler secret put` 또는 GitHub Secrets에만 넣는다.
 
 ## Global Constraints
+- 화면의 시각 디자인은 사용자의 Figma 디자인이 오면 적용한다. 그 전까지 화면은 기능 우선 기본 화면(토큰 기반 최소 스타일)으로 두고, 디자인을 임의로 정하지 않는다 (CLAUDE.md "디자인 (Figma)").
 - TypeScript `strict: true`.
 - 비밀값(OAuth 비밀키, 네이버 Secret, VAPID 개인키, `INTERNAL_JOB_TOKEN`)은 Worker Secret과 GitHub Secrets에만 둔다. `.dev.vars`는 `.gitignore`에 넣는다.
 - 공개 변수 이름: `NEXT_PUBLIC_KAKAO_MAP_KEY`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY`.
